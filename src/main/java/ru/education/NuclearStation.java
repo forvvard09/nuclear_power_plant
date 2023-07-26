@@ -5,22 +5,34 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import ru.education.exceptions.NuclearFuelIsEmptyException;
 import ru.education.exceptions.ReactorWorkException;
+import ru.education.util.CountryInfo;
+
+import java.math.BigDecimal;
+
+import static java.math.BigDecimal.ROUND_DOWN;
 
 @Component
 public class NuclearStation {
     private final ReactorDepartment reactorDepartment;
     private final SecurityDepartment securityDepartment;
+
+    @Autowired
+    private CountryInfo countryInfo;
+    @Autowired
+    private EconomicDepartment economicDepartment;
+
     private int sumYearProduced;
     private int sumAllProduced;
     private int accidentCountAllTime;
+    private BigDecimal moneyAllPeriod;
 
     @Autowired
     public NuclearStation(ReactorDepartment reactorDepartment, @Lazy SecurityDepartment securityDepartment) {
         this.reactorDepartment = reactorDepartment;
         this.securityDepartment = securityDepartment;
         this.sumYearProduced = 0;
-
         this.accidentCountAllTime = 0;
+        this.moneyAllPeriod = BigDecimal.valueOf(0);
     }
 
     private void startYear() {
@@ -33,20 +45,23 @@ public class NuclearStation {
                 System.out.println("Внимание! Происходят работы на атомной станции! Электричества нет!");
             }
         }
-        sumAllProduced +=sumYearProduced;
+        sumAllProduced += sumYearProduced;
         System.out.println("Атомная станция закончила работу.");
         System.out.printf("%s %s %s%n", "Выработано за год", sumYearProduced, "миллионов киловатт/часов.");
-        resetSumYear();
-        System.out.printf("%s %s %s%n", "Выработано за все время", sumAllProduced, "миллионов киловатт/часов.");
         System.out.println("Количество инцидентов за год: " + securityDepartment.getCountAccidents());
+        System.out.println("Доход за год составил: " + economicDepartment.computeYearIncomes(sumYearProduced).setScale(6, ROUND_DOWN) + " " + countryInfo.getNameCurrency());
+        resetSumYear();
         securityDepartment.reset();
     }
 
     public void start(int year) {
+        System.out.println("Действие происходит в стране: " + countryInfo.getNameCountry());
         for (int i = 0; i < year; i++) {
             startYear();
-            //тут по заданию непонятно нужно ли для каждого года скидывать счетчик
         }
+        System.out.println();
+        System.out.println("======");
+        System.out.printf("%s %s %s%n", "Выработано за все время", sumAllProduced, "миллионов киловатт/часов.");
         System.out.println("Количество инцидентов за всю работу станции: " + accidentCountAllTime);
     }
 
