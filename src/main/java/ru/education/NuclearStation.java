@@ -1,6 +1,7 @@
 package ru.education;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import ru.education.exceptions.NuclearFuelIsEmptyException;
 import ru.education.exceptions.ReactorWorkException;
@@ -8,12 +9,18 @@ import ru.education.exceptions.ReactorWorkException;
 @Component
 public class NuclearStation {
     private final ReactorDepartment reactorDepartment;
+    private final SecurityDepartment securityDepartment;
     private int sumYearProduced;
+    private int sumAllProduced;
+    private int accidentCountAllTime;
 
     @Autowired
-    public NuclearStation(ReactorDepartment reactorDepartment) {
+    public NuclearStation(ReactorDepartment reactorDepartment, @Lazy SecurityDepartment securityDepartment) {
         this.reactorDepartment = reactorDepartment;
+        this.securityDepartment = securityDepartment;
         this.sumYearProduced = 0;
+
+        this.accidentCountAllTime = 0;
     }
 
     private void startYear() {
@@ -26,15 +33,28 @@ public class NuclearStation {
                 System.out.println("Внимание! Происходят работы на атомной станции! Электричества нет!");
             }
         }
+        sumAllProduced +=sumYearProduced;
         System.out.println("Атомная станция закончила работу.");
-        System.out.printf("%s %s %s%n", "За год Выработано", sumYearProduced, "миллионов киловат/часов.");
+        System.out.printf("%s %s %s%n", "Выработано за год", sumYearProduced, "миллионов киловатт/часов.");
+        resetSumYear();
+        System.out.printf("%s %s %s%n", "Выработано за все время", sumAllProduced, "миллионов киловатт/часов.");
+        System.out.println("Количество инцидентов за год: " + securityDepartment.getCountAccidents());
+        securityDepartment.reset();
     }
 
     public void start(int year) {
         for (int i = 0; i < year; i++) {
             startYear();
             //тут по заданию непонятно нужно ли для каждого года скидывать счетчик
-            //sumYearProduced = 0;
         }
+        System.out.println("Количество инцидентов за всю работу станции: " + accidentCountAllTime);
+    }
+
+    public void incrementAccident(int count) {
+        this.accidentCountAllTime += count;
+    }
+
+    private void resetSumYear() {
+        sumYearProduced = 0;
     }
 }
